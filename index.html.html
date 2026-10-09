@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ایستگاه تست ورزشکار</title>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#fff;font:16px/1.5 system-ui,Tahoma,sans-serif;overflow:hidden}
+#c{position:fixed;inset:0;width:100%;height:100%;object-fit:contain}
+.top{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px;background:#000a;text-align:center;font-weight:600}
+.bot{position:fixed;bottom:0;left:0;right:0;padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 8px);background:#000c}
+#res{font-size:17px;line-height:1.6;min-height:5em}
+#res b{font-size:21px;color:#4ade80}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+button,input{font:inherit;border-radius:8px;border:1px solid #555;background:#222;color:#fff;padding:7px 9px}
+button.p{background:#0a7cff;border-color:#0a7cff}
+input{width:72px}#name{width:100px}
+video{display:none}
+#hist{display:none;position:fixed;inset:0;background:#000f;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{border:1px solid #444;padding:4px;text-align:center}
+</style>
+</head>
+<body>
+<video id="v" playsinline muted></video>
+<canvas id="c"></canvas>
+<div class="top" id="st">برای شروع «شروع» را بزنید</div>
+<div class="bot">
+  <div id="res"></div>
+  <div class="row">
+    <button class="p" id="start">▶ شروع</button>
+    <button id="flip">🔄</button>
+    <button id="skip">⏭ رد مرحله</button>
+    <button id="hb">📋 رکوردها</button>
+    <input id="name" placeholder="نام">
+  </div>
+  <div class="row"><span>قد مرجع:</span><input id="known" type="number" value="175"><button id="cal">کالیبره</button></div>
+</div>
+<div id="hist"><div class="row"><button id="hx">✖ بستن</button><button id="csv">⬇ CSV</button><button id="clr">🗑 پاک‌کردن</button></div><div id="tb"></div></div>
+
+<script type="module">
+import {PoseLandmarker,FilesetResolver,DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
+const WASM="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+const MODEL="https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task";
+
+const $=s=>document.querySelector(s);
+const v=$('#v'),c=$('#c'),ctx=c.getContext('2d');
+let lmk,du,facing='environment',state='wait',lost=0,bufH=[],bufS=[],Hcm=null,calReq=false,scale=null,last=-1;
+let base=null,fl=null,bufB=[],lastToes=[0,0],rec=null,recs=[];
+try{scale=parseFloat(localStorage.getItem('scale'))||null;recs=JSON.parse(localStorage.getItem('recs')||'[]')}catch(e){}
+
+const status=t=>$('#st').textContent=t;
+const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[Math.floor(s.length/2)]};
+const range=a=>Math.max(...a)-Math.min(...a);
+const stable=(a,n,tol)=>a.length>=n&&range(a)/med(a)<tol;
+const f1=x=>x==null?'—':x.toFixed(1);
+function say(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fa-IR';speechSynthesis.speak(u)}catch(e){}}
+function persist(){try{localStorage.setItem('recs',JSON.stringify(recs))}catch(e){}}
+function newRec(){rec={t:new Date().toLocaleString('fa-IR'),name:$('#name').value||'',h:null,s:null,d:null,vj:null,lj:null};recs.push(rec);persist()}
+function show(){
+  $('#res').innerHTML=`قد: <b>${f1(rec?.h)}</b> · اسپن: <b>${f1(rec?.s)}</b> · اختلاف: <b>${rec?.d==null?'—':(rec.d>=0?'+':'')+f1(rec.d)}</b><br>پرش ارتفاع: <b>${f1(rec?.vj)}</b> · پرش طول: <b>${f1(rec?.lj)}</b> (cm)`;
+}
+function reset(){state='wait';bufH=[];bufS=[];bufB=[];base=fl=null;Hcm=null;rec=null;$('#res').innerHTML='';status('منتظر ورود فرد...')}
+function enterJump(s){state=s;base=null;fl=null;bufB=[]}
+
+async function cam(){
+  if(v.srcObject)v.srcObject.getTracks().forEach(t=>t.stop());
+  v.srcObject=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60}},audio:false});
+  await v.play();c.width=v.videoWidth;c.height=v.videoHeight;
+}
+async function start(){
+  try{speechSynthesis.speak(new SpeechSynthesisUtterance(''))}catch(e){}
+  $('#start').disabled=true;status('در حال بارگذاری مدل...');
+  try{
+    const fs=await FilesetResolver.forVisionTasks(WASM);
+    const mk=d=>PoseLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:MODEL,delegate:d},runningMode:'VIDEO',numPoses:1});
+    try{lmk=await mk('GPU')}catch(e){lmk=await mk('CPU')}
+    await cam();du=new DrawingUtils(ctx);say('آماده');reset();loop();
+  }catch(e){status('خطا: '+e.message+' — صفحه باید با HTTPS یا localhost باز شود');$('#start').disabled=false}
+}
+function loop(){
+  if(v.videoWidth&&v.currentTime!==last){last=v.currentTime;frame(lmk.detectForVideo(v,performance.now()))}
+  requestAnimationFrame(loop);
+}
+
+function frame(r){
+  ctx.drawImage(v,0,0,c.width,c.height);
+  const L=r.landmarks&&r.landmarks[0];
+  if(!L){if(++lost>60&&state!=='wait')reset();return}
+  lost=0;
+  du.drawConnectors(L,PoseLandmarker.POSE_CONNECTIONS,{color:'#4ade80',lineWidth:3});
+  const W=c.width,H=c.height,P=i=>({x:L[i].x*W,y:L[i].y*H}),d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const eye={x:(P(2).x+P(5).x)/2,y:(P(2).y+P(5).y)/2},heel={x:(P(29).x+P(30).x)/2,y:(P(29).y+P(30).y)/2};
+  const Hpx=d(eye,heel)/0.936; // ارتفاع چشم ≈ 93.6٪ قد
+  if(state==='vjump'||state==='ljump')return jump(L,W,H,Hpx);
+
+  const full=[2,5,11,12,29,30].every(i=>L[i].visibility>0.5)&&L[29].y<0.985&&L[30].y<0.985&&L[2].y>0.01;
+  if(!full){status('کل بدن (سر تا پا) را در کادر قرار دهید');bufH=[];bufS=[];return}
+  if(state==='wait'){state='height';newRec();show()}
+
+  if(state==='height'){
+    status('در حال اندازه‌گیری قد — بی‌حرکت بایستید');
+    bufH.push(Hpx);if(bufH.length>20)bufH.shift();
+    if(!stable(bufH,20,0.012))return;
+    const m=med(bufH);
+    if(calReq){scale=(+$('#known').value)/m;calReq=false;try{localStorage.setItem('scale',scale)}catch(e){}}
+    if(!scale){status('ابتدا کالیبره کنید (فرد با قد مشخص بایستد)');return}
+    Hcm=m*scale;rec.h=Hcm;persist();show();
+    say(`قد ${Math.round(Hcm)} سانتی‌متر ثبت شد. حالا دست‌ها را باز کنید`);
+    state='arms';bufS=[];
+  }
+  else if(state==='arms'){
+    status('دست‌ها را کاملاً از دو طرف باز کنید (حالت T)');
+    const sw=d(P(11),P(12));
+    const level=Math.abs(P(15).y-P(11).y)<0.4*sw&&Math.abs(P(16).y-P(12).y)<0.4*sw;
+    if(!(level&&d(P(15),P(16))>3.0*sw)){bufS=[];return}
+    bufS.push((d(P(19),P(20))+0.04*Hpx)/Hpx);if(bufS.length>15)bufS.shift(); // نسبت اسپن/قد، مستقل از فاصله
+    if(!stable(bufS,15,0.02))return;
+    const S=med(bufS)*Hcm,diff=S-Hcm;
+    rec.s=S;rec.d=diff;persist();show();
+    say(`طول دو دست ${Math.round(S)} سانتی‌متر ثبت شد. اختلاف با قد ${Math.abs(Math.round(diff))} سانتی‌متر ${diff>=0?'بیشتر':'کمتر'} است. حالا پرش ارتفاع انجام دهید`);
+    enterJump('vjump');
+  }
+}
+
+function jump(L,W,H,Hpx){
+  if(![23,24,27,28,29,30,31,32].every(i=>L[i].visibility>0.4))return;
+  const ank=(L[27].y+L[28].y)/2*H,hip=(L[23].y+L[24].y)/2*H;
+  const vj=state==='vjump';
+  if(!base){ // قفل کردن حالت ایستاده
+    status(vj?'برای پرش ارتفاع بی‌حرکت بایستید':'برای پرش طول کنار خط بایستید');
+    if(![2,5].every(i=>L[i].visibility>0.5))return;
+    bufB.push({ank,hip,hpx:Hpx});if(bufB.length>15)bufB.shift();
+    const a=bufB.map(b=>b.ank),hp=med(bufB.map(b=>b.hpx));
+    if(bufB.length===15&&range(a)<0.008*hp){
+      base={ank:med(a),hip:med(bufB.map(b=>b.hip)),hpx:hp};
+      say(vj?'آماده، بپرید':'آماده، پرش طول');status(vj?'بپرید! ⬆':'پرش طول! ➡');
+    }
+    return;
+  }
+  const up=base.ank-ank,thr=base.hpx*0.03,cmpx=Hcm/base.hpx;
+  if(!fl){
+    lastToes=[L[31].x*W,L[32].x*W];
+    if(up>thr)fl={minHip:hip,t:performance.now(),toes:lastToes,hx:(L[23].x+L[24].x)/2*W,n:0};
+    return;
+  }
+  fl.minHip=Math.min(fl.minHip,hip);
+  if(up>thr*0.35)return;               // هنوز در هواست
+  if(performance.now()-fl.t<100){fl=null;return} // نویز
+  if(vj){
+    const h=(base.hip-fl.minHip)*cmpx;
+    rec.vj=h;persist();show();
+    say(`رکورد پرش ارتفاع ${Math.round(h)} سانتی‌متر ثبت شد. حالا پرش طول انجام دهید`);
+    enterJump('ljump');
+  }else{
+    if(++fl.n<3)return;                // چند فریم بعد از تماس با زمین
+    const hxNow=(L[23].x+L[24].x)/2*W,dir=Math.sign(hxNow-fl.hx)||1;
+    const takeoff=dir*Math.max(dir*fl.toes[0],dir*fl.toes[1]);
+    const land=dir*Math.min(dir*L[29].x*W,dir*L[30].x*W);
+    const dist=(land-takeoff)*dir*cmpx;
+    if(dist<20){fl=null;return}
+    rec.lj=dist;persist();show();
+    say(`رکورد پرش طول ${Math.round(dist)} سانتی‌متر ثبت شد. تست‌ها کامل شد`);
+    state='done';status('انجام شد ✔ — فرد بعدی');
+  }
+}
+
+function hist(){
+  $('#tb').innerHTML='<table><tr><th>زمان</th><th>نام</th><th>قد</th><th>اسپن</th><th>اختلاف</th><th>پرش‌ارتفاع</th><th>پرش‌طول</th></tr>'+
+   recs.slice().reverse().map(r=>`<tr><td>${r.t}</td><td>${r.name}</td><td>${f1(r.h)}</td><td>${f1(r.s)}</td><td>${f1(r.d)}</td><td>${f1(r.vj)}</td><td>${f1(r.lj)}</td></tr>`).join('')+'</table>';
+}
+$('#start').onclick=start;
+$('#flip').onclick=async()=>{facing=facing==='environment'?'user':'environment';if(v.srcObject)await cam()};
+$('#cal').onclick=()=>{calReq=true;bufH=[];state='height';if(!rec)newRec();status('کالیبراسیون: فرد مرجع در جای ثابت بایستد')};
+$('#skip').onclick=()=>{
+  if(state==='arms')enterJump('vjump');else if(state==='vjump')enterJump('ljump');else if(state==='ljump'){state='done';status('انجام شد')}
+  say('مرحله‌ی بعد');
+};
+$('#hb').onclick=()=>{hist();$('#hist').style.display='block'};
+$('#hx').onclick=()=>$('#hist').style.display='none';
+$('#clr').onclick=()=>{if(confirm('همه‌ی رکوردها پاک شود؟')){recs=[];persist();hist()}};
+$('#csv').onclick=()=>{
+  const t='time,name,height_cm,span_cm,diff_cm,vertical_cm,long_cm\n'+recs.map(r=>[r.t,r.name,r.h,r.s,r.d,r.vj,r.lj].map(x=>x??'').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download='records.csv';a.click();
+};
+</script>
+</body>
+</html>
