@@ -38,14 +38,11 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{border:1px solid 
 <div id="hist"><div class="row"><button id="hx">✖ بستن</button><button id="pdf">📄 PDF</button><button id="xls">📊 Excel</button><button id="doc">📝 Word</button><button id="csv">⬇ CSV</button><button id="clr">🗑 پاک‌کردن</button></div><div id="tb"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script>
 <script type="module">
-import {PoseLandmarker,FilesetResolver,DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
-const WASM="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
-const MODEL="https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task";
-
 const $=s=>document.querySelector(s);
 const v=$('#v'),c=$('#c'),ctx=c.getContext('2d');
-let lmk,du,facing='environment',state='wait',lost=0,bufH=[],bufS=[],Hcm=null,calReq=false,scale=null,last=-1;
+let lmk,busy=false,facing='environment',state='wait',lost=0,bufH=[],bufS=[],Hcm=null,calReq=false,scale=null,last=-1;
 let base=null,fl=null,bufB=[],lastToes=[0,0],rec=null,recs=[],bufR=[];
 try{scale=parseFloat(localStorage.getItem('scale'))||null;recs=JSON.parse(localStorage.getItem('recs')||'[]')}catch(e){}
 
@@ -74,24 +71,27 @@ async function start(){
   try{speechSynthesis.speak(new SpeechSynthesisUtterance(''))}catch(e){}
   $('#start').disabled=true;status('در حال بارگذاری مدل...');
   try{
-    const fs=await FilesetResolver.forVisionTasks(WASM);
-    const mk=d=>PoseLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:MODEL,delegate:d},runningMode:'VIDEO',numPoses:1});
-    try{lmk=await mk('GPU')}catch(e){lmk=await mk('CPU')}
-    await cam();du=new DrawingUtils(ctx);say('آماده');reset();loop();
+    lmk=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}`});
+    lmk.setOptions({modelComplexity:1,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.5,minTrackingConfidence:0.5});
+    lmk.onResults(r=>frame({landmarks:r.poseLandmarks?[r.poseLandmarks]:[]}));
+    await lmk.initialize();
+    await cam();say('آماده');reset();loop();
   }catch(e){status('خطا: '+e.message+' — صفحه باید با HTTPS یا localhost باز شود');$('#start').disabled=false}
 }
 function loop(){
-  if(v.videoWidth&&v.currentTime!==last){last=v.currentTime;frame(lmk.detectForVideo(v,performance.now()))}
+  if(v.videoWidth&&v.currentTime!==last&&!busy){last=v.currentTime;busy=true;lmk.send({image:v}).catch(()=>{}).finally(()=>busy=false)}
   requestAnimationFrame(loop);
 }
+const BONES=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28],[27,29],[28,30],[29,31],[30,32],[0,2],[0,5]];
+function skel(L,W,H){ctx.strokeStyle='#4ade80';ctx.lineWidth=3;ctx.beginPath();BONES.forEach(([a,b])=>{ctx.moveTo(L[a].x*W,L[a].y*H);ctx.lineTo(L[b].x*W,L[b].y*H)});ctx.stroke()}
 
 function frame(r){
   ctx.drawImage(v,0,0,c.width,c.height);
   const L=r.landmarks&&r.landmarks[0];
   if(!L){if(++lost>60&&state!=='wait')reset();return}
   lost=0;
-  du.drawConnectors(L,PoseLandmarker.POSE_CONNECTIONS,{color:'#4ade80',lineWidth:3});
-  const W=c.width,H=c.height,P=i=>({x:L[i].x*W,y:L[i].y*H}),d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const W=c.width,H=c.height;skel(L,W,H);
+  const P=i=>({x:L[i].x*W,y:L[i].y*H}),d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   const eye={x:(P(2).x+P(5).x)/2,y:(P(2).y+P(5).y)/2},heel={x:(P(29).x+P(30).x)/2,y:(P(29).y+P(30).y)/2};
   const Hpx=d(eye,heel)/0.936; // ارتفاع چشم ≈ 93.6٪ قد
   if(state==='vjump'||state==='ljump')return jump(L,W,H,Hpx);
