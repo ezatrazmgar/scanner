@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b16">
+<title>ایستگاه تست ورزشکار — نسخه ۹</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css">
+<style>
+/* فونت یکان: فایل yekan.woff2 (یا yekan.ttf) را کنار index.html در همین مخزن بگذارید */
+@font-face{font-family:"Yekan";src:local("Yekan Bakh"),local("IRANYekan"),local("B Yekan"),local("Yekan"),url("yekan.woff2") format("woff2"),url("yekan.ttf") format("truetype");font-display:swap}
+:root{--f:"Yekan","Yekan Bakh","B Yekan","IRANYekan",Vazirmatn,Tahoma,system-ui,sans-serif;--bg:#070b16;--glass:rgba(16,22,40,.74);--line:rgba(255,255,255,.11);--fg:#eef2ff;--mut:#9aa6c4;--ac1:#6366f1;--ac2:#06b6d4;--ok:#22c55e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+html,body{margin:0;height:100%;color:var(--fg);font:15px/1.6 var(--f);overflow:hidden;background:radial-gradient(1100px 560px at 85% -10%,#1d2760 0,transparent 60%),radial-gradient(900px 500px at 0% 110%,#0b3a4a 0,transparent 55%),var(--bg)}
+#c{position:fixed;inset:0;width:100%;height:100%;object-fit:contain}
+video{position:fixed;left:-9999px;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
+.glass{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line)}
+.top{position:fixed;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 0;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.top>*{pointer-events:auto}
+.pill{display:flex;align-items:center;gap:9px;padding:8px 16px;border-radius:999px;max-width:100%;font-weight:600;font-size:14px;text-align:center;box-shadow:0 6px 24px #0006}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none;animation:pl 1.6s infinite}
+@keyframes pl{0%{box-shadow:0 0 0 0 #22c55e99}70%{box-shadow:0 0 0 9px #22c55e00}100%{box-shadow:0 0 0 0 #22c55e00}}
+.seg{display:flex;padding:4px;border-radius:999px;gap:2px;box-shadow:0 6px 24px #0006}
+.seg button{border:0;background:transparent;color:var(--mut);padding:7px 12px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:linear-gradient(135deg,var(--ac1),var(--ac2));color:#fff;font-weight:700}
+.sheet{position:fixed;left:0;right:0;bottom:0;padding:12px 12px calc(env(safe-area-inset-bottom,0px) + 10px);border-radius:24px 24px 0 0;max-height:62vh;overflow:auto;box-shadow:0 -10px 40px #0008}
+@media (min-width:900px){.sheet{left:50%;right:auto;transform:translateX(-50%);width:780px;bottom:14px;border-radius:24px}}
+.steps{display:flex;gap:6px;margin-bottom:10px}
+.steps span{flex:1;text-align:center;font-size:12px;padding:7px 2px;border-radius:12px;background:#ffffff0d;color:var(--mut);border:1px solid transparent;transition:.25s}
+.steps span.on{color:#fff;background:#6366f12e;border-color:var(--ac1);font-weight:700}
+.steps span.ok{color:#bbf7d0;background:#22c55e22}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.tile{background:#ffffff0a;border:1px solid var(--line);border-radius:14px;padding:6px 3px;text-align:center;line-height:1.35}
+.tile i{display:block;font-style:normal;font-size:11px;color:var(--mut)}
+.tile b{font-size:20px;font-weight:700}
+.tile small{display:block;font-size:10px;color:var(--mut)}
+.tile.hi b{color:#67e8f9}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#ffffff12;font-weight:600;border-radius:14px;padding:11px 14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .1s}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.5}
+.btn.pri{flex:1.6;background:linear-gradient(135deg,var(--ac1),var(--ac2));border:0;color:#fff;font-size:16px;box-shadow:0 6px 18px #6366f155}
+.btn.sm{padding:9px 12px;font-size:13px;border-radius:12px}
+.btn.icon{width:46px;padding:0;font-size:18px}
+input{background:#0b1226;border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0;outline:0}
+input:focus{border-color:var(--ac1)}
+input::placeholder{color:#5f6b8d}
+details{margin-top:8px;border:1px solid var(--line);border-radius:14px;background:#ffffff08}
+summary{padding:10px 14px;cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:8px}
+summary::-webkit-details-marker{display:none}
+.cal{padding:0 12px 12px;display:grid;gap:10px}
+.f{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.f label{font-size:11px;color:var(--mut);display:flex;flex-direction:column;gap:4px}
+.hint{color:var(--mut);font-size:12px;font-weight:400}
+#hist{display:none;position:fixed;inset:0;z-index:20;background:rgba(7,11,22,.97);padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 16px;overflow:auto}
+.hd{display:flex;justify-content:space-between;align-items:center;font-size:19px;font-weight:700;margin-bottom:12px}
+#hx{border:1px solid var(--line);background:#ffffff12;border-radius:12px;padding:8px 14px;cursor:pointer}
+.grp{background:#ffffff08;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px}
+.gl{font-size:12px;color:var(--mut);margin-bottom:8px}
+.exs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ex{border:0;border-radius:14px;padding:15px 6px;color:#fff;font-weight:700;font-size:15px;cursor:pointer;background:#ffffff1c}
+.ex:active{transform:scale(.97)}
+.ex.pdf{background:linear-gradient(135deg,#ef4444,#f97316)}
+.ex.xls{background:linear-gradient(135deg,#16a34a,#22c55e)}
+.ex.doc{background:linear-gradient(135deg,#2563eb,#38bdf8)}
+.dg{width:100%;background:#3b101055;border:1px solid #7f1d1d;color:#fca5a5;border-radius:12px;padding:10px;cursor:pointer}
+#tb{overflow:auto;border-radius:14px;border:1px solid var(--line)}
+#tb table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+#tb th{position:sticky;top:0;background:#243071;padding:9px 6px;font-weight:700}
+#tb td{padding:8px 6px;text-align:center;border-top:1px solid var(--line)}
+#tb tr:nth-child(even) td{background:#ffffff08}
+</style>
+</head>
+<body>
+<video id="v" playsinline muted></video>
+<canvas id="c"></canvas>
+
+<div class="top">
+  <div class="pill glass"><span class="dot"></span><span id="st">نسخه ۹ · برای شروع «شروع» را بزنید</span></div>
+  <div class="seg glass"><button data-v="0">🚫 بدون اسکلت</button><button data-v="1">🦴 اسکلت</button><button data-v="2">📐 اسکلت + زاویه</button></div>
+</div>
+
+<div class="sheet glass">
+  <div class="steps" id="steps"><span data-s="1">① قد</span><span data-s="2">② اسپن و تنه</span><span data-s="3">③ پرش ارتفاع</span><span data-s="4">④ پرش طول</span></div>
+  <div class="tiles">
+    <div class="tile hi"><i>قد</i><b id="t-h">—</b><small>cm</small></div>
+    <div class="tile"><i>اسپن دست‌ها</i><b id="t-s">—</b><small>cm</small></div>
+    <div class="tile"><i>اختلاف دست و قد</i><b id="t-d">—</b><small>cm</small></div>
+    <div class="tile"><i>بالاتنه</i><b id="t-u">—</b><small>cm</small></div>
+    <div class="tile"><i>پایین‌تنه</i><b id="t-l">—</b><small>cm</small></div>
+    <div class="tile"><i>اختلاف تنه‌ها</i><b id="t-ud">—</b><small>cm</small></div>
+    <div class="tile hi"><i>پرش ارتفاع</i><b id="t-vj">—</b><small>cm</small></div>
+    <div class="tile hi"><i>پرش طول</i><b id="t-lj">—</b><small>cm</small></div>
+  </div>
+  <input id="name" placeholder="👤 نام ورزشکار (اختیاری)" style="margin-bottom:8px">
+  <div class="btns">
+    <button class="btn icon" id="flip" title="تعویض دوربین">🔄</button>
+    <button class="btn" id="skip">⏭ رد مرحله</button>
+    <button class="btn" id="hb">📋 رکوردها</button>
+    <button class="btn pri" id="start">▶ شروع</button>
+  </div>
+  <details id="caldet"><summary><span>🎯 کالیبراسیون</span><span id="cinfo" class="hint"></span></summary>
+    <div class="cal">
+      <div class="f">
+        <label>قد مرجع (cm)<input id="known" type="number" value="175"></label>
+        <label>اسپن مرجع<input id="refSpan" type="number" placeholder="اختیاری"></label>
+        <label>پایین‌تنه مرجع<input id="refLow" type="number" placeholder="اختیاری"></label>
+      </div>
+      <div class="btns"><button class="btn sm" id="cal" style="flex:1">🎯 شروع کالیبراسیون (۳ نقطه)</button><button class="btn sm" id="fin" style="display:none">✔ پایان</button></div>
+    </div>
+  </details>
+</div>
+
+<div id="hist">
+  <div class="hd"><span>📋 گزارش و رکوردها</span><button id="hx">✖ بستن</button></div>
+  <div class="grp"><div class="gl">دریافت فایل گزارش</div>
+    <div class="exs"><button id="pdf" class="ex pdf">📄 PDF</button><button id="xls" class="ex xls">📊 Excel</button><button id="doc" class="ex doc">📝 Word</button><button id="csv" class="ex">⬇ CSV</button></div></div>
+  <div id="tb"></div>
+  <div class="grp" style="margin-top:12px"><button id="clr" class="dg">🗑 پاک‌کردن همه‌ی رکوردها</button></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script>
+<script type="module">
+const $=s=>document.querySelector(s);
+const v=$('#v'),c=$('#c'),ctx=c.getContext('2d');
+let lmk,busy=false,facing='environment',state='wait',lost=0,bufH=[],bufY=[],bufS=[],Hcm=null,calMode=null,calPts=[],calib=null,rlow=null,last=-1;
+let base=null,fl=null,bufB=[],lastToes=[0,0],rec=null,recs=[],bufR=[];
+try{recs=JSON.parse(localStorage.getItem('recs')||'[]');calib=JSON.parse(localStorage.getItem('calib2')||'null')}catch(e){}
+
+let viewMode=2;try{const sv=localStorage.getItem('vm');if(sv!==null)viewMode=+sv}catch(e){}
+let lastStep='';
+function stepUI(){
+  const idx={wait:0,height:1,arms:2,vjump:3,ljump:4,done:5}[state]||0,k=idx+'|'+(calMode||'');
+  if(k===lastStep)return;lastStep=k;
+  document.querySelectorAll('#steps span').forEach(sp=>{const n=+sp.dataset.s;sp.className=idx>n?'ok':(idx===n?'on':'')});
+}
+function status(t){$('#st').textContent=t;stepUI()}
+const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[Math.floor(s.length/2)]};
+const range=a=>Math.max(...a)-Math.min(...a);
+const stable=(a,n,tol)=>a.length>=n&&range(a)/med(a)<tol;
+const f1=x=>x==null?'—':x.toFixed(1);
+const sg=x=>x==null?'—':(x>=0?'+':'')+x.toFixed(1);
+function say(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fa-IR';speechSynthesis.speak(u)}catch(e){}}
+function persist(){try{localStorage.setItem('recs',JSON.stringify(recs))}catch(e){}}
+function newRec(){rec={t:new Date().toLocaleString('fa-IR'),name:$('#name').value||'',h:null,s:null,d:null,u:null,l:null,ud:null,vj:null,lj:null};recs.push(rec);persist()}
+function show(){
+  const r=rec||{},set=(id,v,sgn)=>{$('#'+id).textContent=v==null?'—':(sgn&&v>=0?'+':'')+v.toFixed(1)};
+  set('t-h',r.h);set('t-s',r.s);set('t-d',r.d,1);set('t-u',r.u);set('t-l',r.l);set('t-ud',r.ud,1);set('t-vj',r.vj);set('t-lj',r.lj);
+}
+function reset(){state=calMode?(calMode==='span'?'arms':'height'):'wait';bufH=[];bufY=[];bufS=[];bufB=[];bufR=[];base=fl=null;Hcm=null;if(!calMode){rec=null;show()}status(calMode?'کالیبراسیون ادامه دارد...':'منتظر ورود فرد...')}
+function enterJump(s){state=s;base=null;fl=null;bufB=[]}
+
+let devs=[],camId='',ready=false,looping=false;
+function camErr(e){
+  const n=e&&e.name;
+  return n==='NotAllowedError'||n==='SecurityError'?'اجازه‌ی دوربین داده نشده: روی آیکون قفل کنار آدرس بزنید، Camera را Allow کنید و صفحه را تازه کنید. در ویندوز: Settings ← Privacy ← Camera را هم روشن کنید.'
+    :n==='NotFoundError'||n==='OverconstrainedError'?'دوربینی پیدا نشد. وبکم را بررسی کنید.'
+    :n==='NotReadableError'||n==='AbortError'?'دوربین در اختیار برنامه‌ی دیگری است (Zoom، Teams، Camera…). آن را ببندید و دوباره «شروع» را بزنید.'
+    :'خطای دوربین: '+((e&&e.message)||e);
+}
+async function cam(deviceId){
+  if(v.srcObject)v.srcObject.getTracks().forEach(t=>t.stop());
+  const b={width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60}};
+  const tries=[deviceId?{video:{...b,deviceId:{exact:deviceId}}}:{video:{...b,facingMode:facing}},{video:true}];
+  let stream,err;
+  for(const t of tries){try{stream=await navigator.mediaDevices.getUserMedia({...t,audio:false});break}catch(e){err=e}}
+  if(!stream)throw err;
+  v.srcObject=stream;await v.play();
+  camId=stream.getVideoTracks()[0].getSettings().deviceId||'';
+  c.width=v.videoWidth;c.height=v.videoHeight;
+  try{devs=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput')}catch(e){}
+}
+async function start(){
+  try{speechSynthesis.speak(new SpeechSynthesisUtterance(''))}catch(e){}
+  $('#start').disabled=true;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){status('دوربین در دسترس نیست — صفحه باید با آدرس HTTPS باز شود');$('#start').disabled=false;return}
+  status('در حال باز کردن دوربین...');
+  try{await cam()}catch(e){status(camErr(e));$('#start').disabled=false;return}
+  if(!looping){looping=true;loop()}
+  status('دوربین باز شد · در حال بارگذاری مدل تشخیص بدن...');
+  try{
+    lmk=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}`});
+    lmk.setOptions({modelComplexity:1,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.5,minTrackingConfidence:0.5});
+    lmk.onResults(r=>frame({landmarks:r.poseLandmarks?[r.poseLandmarks]:[]}));
+    await lmk.initialize();
+    ready=true;say('آماده');reset();
+  }catch(e){status('دوربین باز است ولی مدل بارگذاری نشد: '+((e&&e.message)||e)+' — اینترنت و دسترسی به cdn.jsdelivr.net را بررسی کنید');$('#start').disabled=false}
+}
+function loop(){
+  if(v.videoWidth){
+    if(!ready)ctx.drawImage(v,0,0,c.width,c.height);
+    else if(!busy){busy=true;lmk.send({image:v}).catch(()=>{}).finally(()=>busy=false)}
+  }
+  requestAnimationFrame(loop);
+}
+const BONES=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28],[27,29],[28,30],[29,31],[30,32],[0,2],[0,5]];
+const JOINTS=[[11,13,15],[12,14,16],[13,11,23],[14,12,24],[11,23,25],[12,24,26],[23,25,27],[24,26,28],[25,27,31],[26,28,32]]; // آرنج، شانه، لگن، زانو، مچ پا
+function angles(L,W,H){
+  const fs=Math.max(13,W/58),r=fs*1.3;
+  ctx.font=`bold ${fs}px Yekan,Vazirmatn,Tahoma,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=3;
+  JOINTS.forEach(([a,b,k])=>{
+    if(![a,b,k].every(i=>L[i].visibility>0.5))return;
+    const A={x:L[a].x*W,y:L[a].y*H},B={x:L[b].x*W,y:L[b].y*H},C={x:L[k].x*W,y:L[k].y*H};
+    const a1=Math.atan2(A.y-B.y,A.x-B.x),a2=Math.atan2(C.y-B.y,C.x-B.x);
+    let df=a2-a1;while(df>Math.PI)df-=2*Math.PI;while(df<-Math.PI)df+=2*Math.PI;
+    ctx.strokeStyle='#facc15';ctx.beginPath();ctx.arc(B.x,B.y,r,a1,a1+df,df<0);ctx.stroke();
+    const m=a1+df/2,tx=B.x+Math.cos(m)*r*2.1,ty=B.y+Math.sin(m)*r*2.1,t=Math.round(Math.abs(df)*180/Math.PI)+'°';
+    ctx.strokeStyle='#000';ctx.fillStyle='#facc15';ctx.strokeText(t,tx,ty);ctx.fillText(t,tx,ty);
+  });
+}
+function skel(L,W,H){ctx.strokeStyle='#4ade80';ctx.lineWidth=3;ctx.beginPath();BONES.forEach(([a,b])=>{ctx.moveTo(L[a].x*W,L[a].y*H);ctx.lineTo(L[b].x*W,L[b].y*H)});ctx.stroke()}
+
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const ang=(A,B,C)=>{const u={x:A.x-B.x,y:A.y-B.y},w={x:C.x-B.x,y:C.y-B.y};return Math.acos(Math.max(-1,Math.min(1,(u.x*w.x+u.y*w.y)/((Math.hypot(u.x,u.y)*Math.hypot(w.x,w.y))||1))))*180/Math.PI};
+const ERR={out:'خارج از محدوده‌ی کالیبراسیون؛ بین نقاط کالیبراسیون بایستید',spot:'روی همان خط کالیبراسیون بایستید (کالیبراسیون تک‌نقطه‌ای)',bad:'خطای کالیبراسیون؛ دوباره کالیبره کنید',ar:'دوربین یا جهت تصویر عوض شده؛ دوباره کالیبره کنید'};
+function cinfo(){const C=calib;$('#cinfo').textContent=!C?'⚠ کالیبره نشده':`✔ ${C.mode==='line'?'چندنقطه‌ای ('+C.n+' نقطه، خطا '+(C.err*100).toFixed(1)+'٪)':'تک‌نقطه‌ای (فقط روی همان خط)'} · قد مرجع ${C.Href}`}
+// قد = قد مرجع × (قد پیکسلی فرد) / (قد پیکسلی فرد مرجع در همان ردیف پا)  → مستقل از فاصله‌ی فرد تا دوربین
+function heightCm(hn,yf){
+  const C=calib;if(!C)return{err:'bad'};
+  if(Math.abs(C.ar-c.width/c.height)>0.02*C.ar||C.face!==camId)return{err:'ar'};
+  if(C.mode==='line'){
+    if(yf<C.ymin-0.12||yf>C.ymax+0.12)return{err:'out'};
+    const den=C.a*yf+C.b;return den>0?{v:C.Href*hn/den}:{err:'bad'};
+  }
+  if(Math.abs(yf-C.y0)>0.02)return{err:'spot'};
+  return{v:C.Href*hn/C.h0};
+}
+function finishCal(){
+  const Pt=calPts,H0=+$('#known').value,ys=Pt.map(p=>p.y),hs=Pt.map(p=>p.h);
+  const C={Href:H0,ar:c.width/c.height,face:camId,ymin:Math.min(...ys),ymax:Math.max(...ys),hf:0.108,kL:1,n:Pt.length,mode:'single',h0:med(hs),y0:med(ys),err:0};
+  if(Pt.length>=2&&range(ys)>=0.06){ // برازش خط: قد پیکسلی = a·(ردیف پا) + b
+    const my=mean(ys),mh=mean(hs);
+    const a=ys.reduce((q,y,i)=>q+(y-my)*(hs[i]-mh),0)/ys.reduce((q,y)=>q+(y-my)**2,0),b=mh-a*my;
+    if(a>0&&ys.every(y=>a*y+b>0)){C.mode='line';C.a=a;C.b=b;C.err=Math.max(...Pt.map(p=>Math.abs(p.h/(a*p.y+b)-1)))}
+  }
+  const rl=mean(Pt.map(p=>p.r)),lowRef=+$('#refLow').value;
+  if(lowRef>0)C.kL=(lowRef/H0)/rl;
+  calib=C;try{localStorage.setItem('calib2',JSON.stringify(C))}catch(e){}
+  cinfo();
+  if(+$('#refSpan').value>0){calMode='span';state='arms';bufS=[];status('کالیبراسیون اسپن: دست‌ها را باز کنید');say('حالا برای کالیبراسیون اسپن، دست‌ها را باز کنید');return}
+  calMode=null;$('#fin').style.display='none';
+  say(C.mode==='line'?(C.n>=3?`کالیبراسیون کامل شد. خطای برازش ${(C.err*100).toFixed(1)} درصد`:'کالیبراسیون انجام شد. برای کنترل خطا، بهتر است سه نقطه ثبت کنید'):'کالیبراسیون تک‌نقطه‌ای انجام شد. همه باید روی همان خط بایستند');
+  reset();
+}
+
+function frame(r){
+  ctx.drawImage(v,0,0,c.width,c.height);
+  const L=r.landmarks&&r.landmarks[0];
+  if(!L){if(++lost===61&&state!=='wait')reset();return}
+  lost=0;
+  const W=c.width,H=c.height;if(viewMode>=1)skel(L,W,H);if(viewMode>=2)angles(L,W,H);
+  const P=i=>({x:L[i].x*W,y:L[i].y*H}),d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const eyeY=(P(2).y+P(5).y)/2,heelY=(P(29).y+P(30).y)/2;
+  const Hpx=Math.abs(heelY-eyeY)/0.936,hn=Hpx/H,yf=heelY/H; // ارتفاع چشم ≈ 93.6٪ قد
+  if(state==='vjump'||state==='ljump')return jump(L,W,H,Hpx);
+
+  const full=[2,5,11,12,23,24,29,30].every(i=>L[i].visibility>0.6)&&L[29].y<0.985&&L[30].y<0.985&&L[2].y>0.01;
+  if(!full){status('کل بدن (سر تا پا) را در کادر قرار دهید');bufH=[];bufY=[];bufS=[];bufR=[];return}
+  if(state==='wait'){state='height';newRec();show()}
+
+  if(state==='height'){
+    const cal=calMode==='pts';
+    if(hn<0.5||hn>0.94){status(hn<0.5?'نزدیک‌تر شوید: فرد باید حداقل نیمی از ارتفاع تصویر را پر کند':'کمی دورتر بایستید');bufH=[];bufY=[];bufR=[];return}
+    bufH.push(hn);bufY.push(yf);bufR.push(Math.abs(heelY-(P(23).y+P(24).y)/2)/Hpx); // نسبت پایین‌تنه (لگن تا زمین) به قد
+    if(bufH.length>25){bufH.shift();bufY.shift();bufR.shift()}
+    const m=med(bufH),y=med(bufY);
+    let msg=cal?`کالیبراسیون: نقطه ${calPts.length+1} — فرد مرجع بی‌حرکت بایستد (${bufH.length}/25)`:`در حال اندازه‌گیری قد — بی‌حرکت بایستید (${bufH.length}/25)`;
+    if(!cal&&calib&&bufH.length>=5){const lv=heightCm(m,y);msg=lv.v?`قد لحظه‌ای ≈ ${lv.v.toFixed(1)} cm · بی‌حرکت بایستید`:ERR[lv.err]}
+    status(msg);
+    if(!(bufH.length>=25&&range(bufH)/m<0.01&&range(bufY)<0.015))return;
+    if(cal){
+      if(calPts.some(q=>Math.abs(q.y-y)<0.04)){status('جای دیگری بایستید (نزدیک‌تر یا دورتر از نقطه‌ی قبلی)');return}
+      calPts.push({y,h:m,r:med(bufR)});bufH=[];bufY=[];bufR=[];
+      if(calPts.length>=3){finishCal();return}
+      say(`نقطه ${calPts.length} ثبت شد. چند قدم نزدیک‌تر یا دورتر بایستید`);return;
+    }
+    if(!calib){status('ابتدا کالیبره کنید (فرد با قد مشخص در ۳ نقطه)');return}
+    const res=heightCm(m,y);if(!res.v){status(ERR[res.err]);return}
+    Hcm=res.v;rlow=med(bufR);rec.h=Hcm;persist();show();
+    say(`قد ${Math.round(Hcm)} سانتی‌متر ثبت شد. حالا دست‌ها را باز کنید`);
+    state='arms';bufS=[];
+  }
+  else if(state==='arms'){
+    if(![11,12,13,14,15,16].every(i=>L[i].visibility>0.6)){status('دست‌ها و آرنج‌ها باید کاملاً دیده شوند');bufS=[];return}
+    const armL=d(P(11),P(15)),armR=d(P(12),P(16)),sw=Math.abs(P(11).x-P(12).x);
+    const hf=(calMode==='span'?0.108:(calib&&calib.hf))||0.108;
+    const tip=(e,w)=>{const dx=P(w).x-P(e).x,dy=P(w).y-P(e).y,n=Math.hypot(dx,dy)||1;return{x:P(w).x+dx/n*hf*Hpx,y:P(w).y+dy/n*hf*Hpx}}; // سر انگشت = مچ + امتداد ساعد
+    let hint='';
+    if(Math.abs(P(15).y-P(11).y)>0.10*armL||Math.abs(P(16).y-P(12).y)>0.10*armR)hint='دست‌ها را هم‌سطح شانه نگه دارید';
+    else if(ang(P(11),P(13),P(15))<165||ang(P(12),P(14),P(16))<165)hint='آرنج‌ها را کاملاً صاف کنید';
+    else if(Math.abs(L[11].z-L[12].z)>0.25*Math.abs(L[11].x-L[12].x))hint='رو به دوربین بایستید (بدن نچرخد)';
+    else if(d(P(15),P(16))<3.0*sw)hint='دست‌ها را بیشتر باز کنید';
+    if(hint){status(hint);bufS=[];return}
+    status('دست‌ها ثابت بماند...');
+    bufS.push(d(tip(13,15),tip(14,16))/Hpx);if(bufS.length>20)bufS.shift(); // نسبت اسپن/قد در همان فریم
+    if(!stable(bufS,20,0.008))return;
+    const ratio=med(bufS);
+    if(calMode==='span'){ // تنظیم طول دست از روی اسپن واقعی فرد مرجع
+      calib.hf=Math.min(0.16,Math.max(0.05,0.108+(+$('#refSpan').value/calib.Href-ratio)/2));
+      try{localStorage.setItem('calib2',JSON.stringify(calib))}catch(e){}
+      calMode=null;$('#fin').style.display='none';say('کالیبراسیون کامل شد');reset();return;
+    }
+    const S=ratio*Hcm,diff=S-Hcm;
+    const lo=rlow*Hcm*calib.kL,up=Hcm-lo,ud=up-lo; // پایین‌تنه: لگن تا زمین، بالاتنه: بقیه‌ی قد
+    rec.s=S;rec.d=diff;rec.l=lo;rec.u=up;rec.ud=ud;persist();show();
+    say(`طول دو دست ${Math.round(S)} سانتی‌متر ثبت شد. اختلاف با قد ${Math.abs(Math.round(diff))} سانتی‌متر ${diff>=0?'بیشتر':'کمتر'} است. بالاتنه ${Math.round(up)} و پایین‌تنه ${Math.round(lo)} سانتی‌متر ثبت شد. اختلاف بالاتنه و پایین‌تنه ${Math.abs(Math.round(ud))} سانتی‌متر، ${ud>=0?'بالاتنه بلندتر':'پایین‌تنه بلندتر'} است. حالا پرش ارتفاع انجام دهید`);
+    enterJump('vjump');
+  }
+}
+
+function jump(L,W,H,Hpx){
+  if(![23,24,27,28,29,30,31,32].every(i=>L[i].visibility>0.4))return;
+  const ank=(L[27].y+L[28].y)/2*H,hip=(L[23].y+L[24].y)/2*H;
+  const vj=state==='vjump';
+  if(!base){ // قفل کردن حالت ایستاده
+    status(vj?'برای پرش ارتفاع بی‌حرکت بایستید':'برای پرش طول کنار خط بایستید');
+    if(![2,5].every(i=>L[i].visibility>0.5))return;
+    bufB.push({ank,hip,hpx:Hpx});if(bufB.length>15)bufB.shift();
+    const a=bufB.map(b=>b.ank),hp=med(bufB.map(b=>b.hpx));
+    if(bufB.length===15&&range(a)<0.008*hp){
+      base={ank:med(a),hip:med(bufB.map(b=>b.hip)),hpx:hp};
+      say(vj?'آماده، بپرید':'آماده، پرش طول');status(vj?'بپرید! ⬆':'پرش طول! ➡');
+    }
+    return;
+  }
+  const up=base.ank-ank,thr=base.hpx*0.03,cmpx=Hcm/base.hpx;
+  if(!fl){
+    lastToes=[L[31].x*W,L[32].x*W];
+    if(up>thr)fl={minHip:hip,t:performance.now(),toes:lastToes,hx:(L[23].x+L[24].x)/2*W,n:0};
+    return;
+  }
+  fl.minHip=Math.min(fl.minHip,hip);
+  if(up>thr*0.35)return;               // هنوز در هواست
+  if(performance.now()-fl.t<100){fl=null;return} // نویز
+  if(vj){
+    const h=(base.hip-fl.minHip)*cmpx;
+    rec.vj=h;persist();show();
+    say(`رکورد پرش ارتفاع ${Math.round(h)} سانتی‌متر ثبت شد. حالا پرش طول انجام دهید`);
+    enterJump('ljump');
+  }else{
+    if(++fl.n<3)return;                // چند فریم بعد از تماس با زمین
+    const hxNow=(L[23].x+L[24].x)/2*W,dir=Math.sign(hxNow-fl.hx)||1;
+    const takeoff=dir*Math.max(dir*fl.toes[0],dir*fl.toes[1]);
+    const land=dir*Math.min(dir*L[29].x*W,dir*L[30].x*W);
+    const dist=(land-takeoff)*dir*cmpx;
+    if(dist<20){fl=null;return}
+    rec.lj=dist;persist();show();
+    say(`رکورد پرش طول ${Math.round(dist)} سانتی‌متر ثبت شد. تست‌ها کامل شد`);
+    state='done';status('انجام شد ✔ — فرد بعدی');
+  }
+}
+
+const COLS=[['زمان','t'],['نام','name'],['قد','h'],['طول دو دست','s'],['اختلاف دست و قد','d'],['بالاتنه','u'],['پایین‌تنه','l'],['اختلاف بالا و پایین‌تنه','ud'],['پرش ارتفاع','vj'],['پرش طول','lj']];
+const cell=(r,k)=>typeof r[k]==='number'?+r[k].toFixed(1):(r[k]??'');
+function hist(){
+  $('#tb').innerHTML='<table><tr>'+COLS.map(([h])=>`<th>${h}</th>`).join('')+'</tr>'+
+   recs.slice().reverse().map(r=>'<tr>'+COLS.map(([,k])=>`<td>${cell(r,k)}</td>`).join('')+'</tr>').join('')+'</table>';
+}
+function reportHTML(){
+  const rows=recs.map((r,i)=>`<tr><td>${i+1}</td>${COLS.map(([,k])=>`<td>${cell(r,k)}</td>`).join('')}</tr>`).join('');
+  return `<!doctype html><html dir="rtl" lang="fa" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>گزارش تست ورزشکاران</title><style>
+@page{size:A4 landscape;margin:12mm}
+@page Section1{size:29.7cm 21cm;mso-page-orientation:landscape;margin:1cm}
+div.Section1{page:Section1}
+@font-face{font-family:Yekan;src:local("Yekan Bakh"),local("IRANYekan"),local("B Yekan"),url(${new URL("yekan.woff2",location.href).href}) format("woff2"),url(${new URL("yekan.ttf",location.href).href}) format("truetype")}
+body{font-family:Yekan,"Yekan Bakh",Vazirmatn,Tahoma,sans-serif;color:#1b2430}
+h1{background:#4f46e5;color:#fff;text-align:center;margin:0;padding:14px;border-radius:12px;font-size:22px}
+p.s{text-align:center;color:#667;margin:4px 0 14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#4f46e5;color:#fff;padding:8px 4px;border:1px solid #4f46e5}
+td{padding:6px 4px;border:1px solid #cfd6df;text-align:center}
+tr:nth-child(even) td{background:#eef2ff}
+.n{margin-top:10px;color:#667;font-size:11px}
+@media print{.np{display:none}}
+</style></head><body><div class="Section1">
+<h1>گزارش تست آمادگی جسمانی</h1><p class="s">تاریخ: ${new Date().toLocaleDateString('fa-IR')} · همه‌ی مقادیر به سانتی‌متر</p>
+<button class="np" onclick="print()">چاپ / ذخیره PDF</button>
+<table><tr><th>#</th>${COLS.map(([h])=>`<th>${h}</th>`).join('')}</tr>${rows}</table>
+<p class="n">اندازه‌ها تخمینی و مبتنی بر تحلیل تصویر هستند.</p></div></body></html>`;
+}
+const dl=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click()};
+$('#start').onclick=start;
+$('#flip').onclick=async()=>{
+  if(!v.srcObject)return;
+  try{
+    if(devs.length>1){const i=devs.findIndex(x=>x.deviceId===camId);await cam(devs[(i+1)%devs.length].deviceId)}
+    else{facing=facing==='environment'?'user':'environment';await cam()}
+  }catch(e){status(camErr(e))}
+};
+$('#cal').onclick=()=>{
+  if(!(+$('#known').value>0)){alert('قد دقیق فرد مرجع را وارد کنید');return}
+  calMode='pts';calPts=[];state='height';rec=null;bufH=[];bufY=[];bufR=[];base=fl=null;
+  $('#fin').style.display='inline-flex';show();$('#caldet').open=false;
+  say('کالیبراسیون. فرد مرجع روی نقطه‌ی اول بایستد');
+};
+$('#fin').onclick=()=>{if(calPts.length)finishCal();else alert('هنوز نقطه‌ای ثبت نشده')};
+cinfo();
+$('#skip').onclick=()=>{
+  if(state==='arms')enterJump('vjump');else if(state==='vjump')enterJump('ljump');else if(state==='ljump'){state='done';status('انجام شد')}
+  say('مرحله‌ی بعد');
+};
+$('#hb').onclick=()=>{hist();$('#hist').style.display='block'};
+function setView(n){viewMode=n;document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===n));try{localStorage.setItem('vm',n)}catch(e){}}
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>setView(+b.dataset.v));setView(viewMode);
+$('#hx').onclick=()=>$('#hist').style.display='none';
+$('#clr').onclick=()=>{if(confirm('همه‌ی رکوردها پاک شود؟')){recs=[];persist();hist()}};
+$('#csv').onclick=()=>{
+  const t=['#',...COLS.map(c=>c[0])].join(',')+'\n'+recs.map((r,i)=>[i+1,...COLS.map(([,k])=>String(cell(r,k)).replace(/,/g,'،'))].join(',')).join('\n');
+  dl(new Blob(['\ufeff'+t],{type:'text/csv'}),'records.csv');
+};
+$('#pdf').onclick=async()=>{
+  if(!window.html2canvas||!window.jspdf){alert('کتابخانه‌ی PDF بارگذاری نشد؛ اینترنت را بررسی کنید');return}
+  const b=$('#pdf'),t=b.textContent;b.textContent='⏳ در حال ساخت...';b.disabled=true;
+  try{
+    const f=document.createElement('iframe');
+    f.style.cssText='position:fixed;left:-10000px;top:0;width:1123px;height:800px;border:0';
+    document.body.appendChild(f);
+    await new Promise(r=>{f.onload=r;f.srcdoc=reportHTML()});
+    try{await f.contentDocument.fonts.ready}catch(e){}await new Promise(r=>setTimeout(r,250));
+    const cv=await html2canvas(f.contentDocument.body,{scale:2,backgroundColor:'#ffffff',windowWidth:1123,ignoreElements:e=>e.classList&&e.classList.contains('np')});
+    f.remove();
+    const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const mw=277,mh=190,ph=Math.floor(cv.width*mh/mw); // ارتفاع هر صفحه به پیکسل
+    for(let y=0,pg=0;y<cv.height;y+=ph,pg++){
+      const sh=Math.min(ph,cv.height-y),sl=document.createElement('canvas');
+      sl.width=cv.width;sl.height=sh;sl.getContext('2d').drawImage(cv,0,y,cv.width,sh,0,0,cv.width,sh);
+      if(pg)pdf.addPage();
+      pdf.addImage(sl.toDataURL('image/jpeg',0.95),'JPEG',10,10,mw,sh*mw/cv.width);
+    }
+    pdf.save('report.pdf');
+  }catch(e){alert('خطا در ساخت PDF: '+e.message)}
+  b.textContent=t;b.disabled=false;
+};
+$('#doc').onclick=()=>dl(new Blob(['\ufeff'+reportHTML()],{type:'application/msword'}),'report.doc');
+$('#xls').onclick=()=>{
+  if(!window.XLSX){alert('کتابخانه‌ی اکسل بارگذاری نشد؛ اینترنت را بررسی کنید');return}
+  const aoa=[['#',...COLS.map(c=>c[0])],...recs.map((r,i)=>[i+1,...COLS.map(([,k])=>cell(r,k))])];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=aoa[0].map((_,i)=>({wch:i===1?20:16}));
+  const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};
+  XLSX.utils.book_append_sheet(wb,ws,'رکوردها');XLSX.writeFile(wb,'records.xlsx');
+};
+</script>
+</body>
+</html>
